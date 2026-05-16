@@ -1,27 +1,35 @@
-// src/app/dashboard/page.tsx
-import { redirect } from "next/navigation";
+"use client";
+
+import { useEffect } from "react";
 import Link from "next/link";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { formatCurrency } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import { trpc } from "@/lib/trpc/client";
+import { useAuth } from "@/lib/auth-context";
 
-export default async function DashboardPage() {
-  const session = await auth();
-  if (!session?.user) redirect("/sign-in");
+export default function DashboardPage() {
+  const router = useRouter();
+  const { session, loading } = useAuth();
 
-  const [companies, investors] = await Promise.all([
-    db.company.findMany({
-      where: { members: { some: { userId: session.user.id } } },
-      include: {
-        _count: { select: { deals: true } },
-        deals: { where: { status: "OPEN" }, select: { id: true, targetAmount: true } },
-      },
-    }),
-    db.investor.findMany({
-      where: { members: { some: { userId: session.user.id } } },
-      include: { _count: { select: { investments: true } } },
-    }),
-  ]);
+  const { data: dashboardData } = trpc.company.list.useQuery(undefined, {
+    enabled: !!session,
+  });
+
+  const { data: investorData } = trpc.investor.list.useQuery(undefined, {
+    enabled: !!session,
+  });
+
+  useEffect(() => {
+    if (!loading && !session) {
+      router.push("/sign-in");
+    }
+  }, [loading, session, router]);
+
+  if (loading || !session) {
+    return <div className="container mx-auto py-16">Loading...</div>;
+  }
+
+  const companies = dashboardData ?? [];
+  const investors = investorData ?? [];
 
   return (
     <main className="container mx-auto py-8">

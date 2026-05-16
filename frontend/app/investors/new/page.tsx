@@ -1,14 +1,13 @@
-// src/app/investors/new/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { trpc } from "@/lib/trpc/client";
+import { useAuth } from "@/lib/auth-context";
 
 export default function NewInvestorPage() {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { session, loading } = useAuth();
   const [error, setError] = useState<string | null>(null);
 
   const createInvestor = trpc.investor.create.useMutation();
@@ -24,12 +23,13 @@ export default function NewInvestorPage() {
     country: "USA",
   });
 
-  if (status === "unauthenticated") {
-    router.push("/sign-in");
-    return null;
-  }
+  useEffect(() => {
+    if (!loading && !session) {
+      router.push("/sign-in");
+    }
+  }, [loading, session, router]);
 
-  if (status === "loading" || !session?.user) {
+  if (loading || !session) {
     return <div className="container mx-auto py-16">Loading...</div>;
   }
 
@@ -62,7 +62,6 @@ export default function NewInvestorPage() {
       <h1 className="text-3xl font-bold mb-8">Create a New Investor Entity</h1>
 
       <form onSubmit={onSubmit} className="space-y-6">
-        {/* Investor Information */}
         <section className="space-y-4">
           <h2 className="text-xl font-semibold">Investor Information</h2>
 
@@ -115,7 +114,6 @@ export default function NewInvestorPage() {
           </div>
         </section>
 
-        {/* Address */}
         <section className="space-y-4">
           <h2 className="text-xl font-semibold">Address</h2>
 

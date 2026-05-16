@@ -1,31 +1,41 @@
-// src/app/companies/[id]/page.tsx
-import { redirect } from "next/navigation";
+"use client";
+
+import { useEffect } from "react";
 import Link from "next/link";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
+import { useRouter } from "next/navigation";
+import { trpc } from "@/lib/trpc/client";
+import { useAuth } from "@/lib/auth-context";
 
 interface Props {
   params: Promise<{ id: string }>;
 }
 
-export default async function CompanyPage({ params }: Props) {
-  const { id } = await params;
-  const session = await auth();
-  if (!session?.user) redirect("/sign-in");
+export default function CompanyPage({ params }: Props) {
+  const router = useRouter();
+  const { session, loading } = useAuth();
 
-  const company = await db.company.findUniqueOrThrow({
-    where: { id },
-    include: {
-      members: {
-        include: { user: { select: { id: true, name: true, email: true } } },
-      },
-      _count: { select: { deals: true, capTableEntries: true } },
-      deals: { orderBy: { createdAt: "desc" }, take: 5 },
-    },
-  });
+  const resolvedParams = typeof params !== "undefined" && "then" in params ? null : params as { id: string } | null;
 
-  const isMember = company.members.some((m) => m.userId === session.user.id);
-  if (!isMember) redirect("/dashboard");
+  const companyId = resolvedParams?.id ?? "";
+
+  const { data: company, isLoading } = trpc.company.get.useQuery(
+    { companyId },
+    { enabled: !!session && !!companyId }
+  );
+
+  useEffect(() => {
+    if (!loading && !session) {
+      router.push("/sign-in");
+    }
+  }, [loading, session, router]);
+
+  if (loading || !session || isLoading) {
+    return <div className="container mx-auto py-16">Loading...</div>;
+  }
+
+  if (!company) {
+    return <div className="container mx-auto py-16">Company not found</div>;
+  }
 
   return (
     <main className="container mx-auto py-8">
@@ -36,7 +46,6 @@ export default async function CompanyPage({ params }: Props) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Info */}
         <div className="lg:col-span-2 space-y-8">
           <div>
             <h1 className="text-4xl font-bold mb-2">{company.legalName}</h1>
@@ -49,7 +58,6 @@ export default async function CompanyPage({ params }: Props) {
             </div>
           </div>
 
-          {/* Address */}
           <section>
             <h2 className="text-xl font-semibold mb-4">Primary Address</h2>
             <div className="bg-muted p-4 rounded-lg text-sm">
@@ -65,7 +73,6 @@ export default async function CompanyPage({ params }: Props) {
             </div>
           </section>
 
-          {/* Deals */}
           <section>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">Recent Deals</h2>
@@ -97,9 +104,7 @@ export default async function CompanyPage({ params }: Props) {
           </section>
         </div>
 
-        {/* Sidebar */}
         <div className="space-y-6">
-          {/* Stats */}
           <div className="border rounded-lg p-6 space-y-4">
             <div>
               <div className="text-2xl font-bold">{company._count.deals}</div>
@@ -113,7 +118,6 @@ export default async function CompanyPage({ params }: Props) {
             </div>
           </div>
 
-          {/* Team */}
           <section>
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-semibold">Team</h3>

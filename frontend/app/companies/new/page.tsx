@@ -1,14 +1,13 @@
-// src/app/companies/new/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { trpc } from "@/lib/trpc/client";
+import { useAuth } from "@/lib/auth-context";
 
 export default function NewCompanyPage() {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { session, loading } = useAuth();
   const [error, setError] = useState<string | null>(null);
 
   const createCompany = trpc.company.create.useMutation();
@@ -28,12 +27,13 @@ export default function NewCompanyPage() {
     authorizedShares: "",
   });
 
-  if (status === "unauthenticated") {
-    router.push("/sign-in");
-    return null;
-  }
+  useEffect(() => {
+    if (!loading && !session) {
+      router.push("/sign-in");
+    }
+  }, [loading, session, router]);
 
-  if (status === "loading" || !session?.user) {
+  if (loading || !session) {
     return <div className="container mx-auto py-16">Loading...</div>;
   }
 
@@ -74,7 +74,6 @@ export default function NewCompanyPage() {
       <h1 className="text-3xl font-bold mb-8">Create a New Company</h1>
 
       <form onSubmit={onSubmit} className="space-y-6">
-        {/* Legal Information */}
         <section className="space-y-4">
           <h2 className="text-xl font-semibold">Legal Information</h2>
 
@@ -177,7 +176,6 @@ export default function NewCompanyPage() {
           </div>
         </section>
 
-        {/* Address */}
         <section className="space-y-4">
           <h2 className="text-xl font-semibold">Primary Address</h2>
 

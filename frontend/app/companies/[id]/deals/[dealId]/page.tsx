@@ -1,36 +1,52 @@
-// src/app/companies/[id]/deals/[dealId]/page.tsx
-import { redirect } from "next/navigation";
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { formatCurrency } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import { trpc } from "@/lib/trpc/client";
+import { useAuth } from "@/lib/auth-context";
 
 interface Props {
   params: Promise<{ id: string; dealId: string }>;
 }
 
-export default async function DealPage({ params }: Props) {
-  const { id: companyId, dealId } = await params;
-  const session = await auth();
-  if (!session?.user) redirect("/sign-in");
+export default function DealPage({ params }: Props) {
+  const router = useRouter();
+  const { session, loading } = useAuth();
+  const [companyId, setCompanyId] = useState<string>("");
+  const [dealId, setDealId] = useState<string>("");
 
-  const deal = await db.deal.findUniqueOrThrow({
-    where: { id: dealId },
-    include: {
-      company: true,
-      investments: { include: { investor: true } },
-      documents: { select: { id: true, title: true, status: true } },
-      _count: { select: { investments: true } },
-    },
-  });
+  useEffect(() => {
+    const resolveParams = async () => {
+      const resolved = await params;
+      setCompanyId(resolved.id);
+      setDealId(resolved.dealId);
+    };
+    resolveParams();
+  }, [params]);
 
-  const isMember = await db.companyMember.findUnique({
-    where: {
-      userId_companyId: { userId: session.user.id, companyId: deal.companyId },
-    },
-  });
+  const { data: deal, isLoading } = trpc.deal.get.useQuery(
+    { dealId },
+    { enabled: !!session && !!dealId }
+  );
 
-  if (!isMember) redirect("/dashboard");
+  const openForInvestment = trpc.deal.openForInvestment.useMutation();
+
+  const handleOpenForInvestment = async () => {
+    if (!deal) return;
+    await openForInvestment.mutateAsync({ dealId: deal.id, companyId });
+    router.refresh();
+  };
+
+  useEffect(() => {
+    if (!loading && !session) {
+      router.push("/sign-in");
+    }
+  }, [loading, session, router]);
+
+  if (loading || !session || isLoading || !deal) {
+    return <div className="container mx-auto py-16">Loading...</div>;
+  }
 
   const terms = deal.defaultTerms as any;
   const isSafe = deal.dealType === "SAFE_ROUND";
@@ -47,7 +63,6 @@ export default async function DealPage({ params }: Props) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Content */}
         <div className="lg:col-span-2 space-y-8">
           <div>
             <h1 className="text-4xl font-bold mb-2">{deal.name}</h1>
@@ -57,14 +72,13 @@ export default async function DealPage({ params }: Props) {
             </div>
           </div>
 
-          {/* Deal Terms */}
           <section>
             <h2 className="text-xl font-semibold mb-4">Deal Terms</h2>
             <div className="grid grid-cols-2 gap-6 bg-muted p-6 rounded-lg">
               <div>
                 <div className="text-sm text-muted-foreground">Target Amount</div>
                 <div className="text-2xl font-bold">
-                  ${deal.targetAmount.toLocaleString()}
+                  ${Number(deal.targetAmount).toLocaleString()}
                 </div>
               </div>
               {deal.minimumAmount && (
@@ -73,7 +87,7 @@ export default async function DealPage({ params }: Props) {
                     Minimum Amount
                   </div>
                   <div className="text-2xl font-bold">
-                    ${deal.minimumAmount.toLocaleString()}
+                    ${Number(deal.minimumAmount).toLocaleString()}
                   </div>
                 </div>
               )}
@@ -83,7 +97,7 @@ export default async function DealPage({ params }: Props) {
                     Closing Deadline
                   </div>
                   <div className="font-medium">
-                    {deal.closingDeadline.toLocaleDateString()}
+                    {new Date(deal.closingDeadline).toLocaleDateString()}
                   </div>
                 </div>
               )}
@@ -96,7 +110,6 @@ export default async function DealPage({ params }: Props) {
             </div>
           </section>
 
-          {/* Instrument-Specific Terms */}
           <section>
             <h2 className="text-xl font-semibold mb-4">
               {isSafe ? "SAFE Terms" : "Convertible Note Terms"}
@@ -176,18 +189,16 @@ export default async function DealPage({ params }: Props) {
             </div>
           </section>
 
-          {/* Investments */}
           <section>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">Investments</h2>
               {deal.status === "DRAFT" && (
                 <button
-                  onClick={() => {
-                    // TODO: Implement open for investment
-                  }}
-                  className="text-sm rounded-md bg-primary px-3 py-1 text-primary-foreground"
+                  onClick={handleOpenForInvestment}
+                  disabled={openForInvestment.isPending}
+                  className="text-sm rounded-md bg-primary px-3 py-1 text-primary-foreground disabled:opacity-50"
                 >
-                  Open for Investment
+                  {openForInvestment.isPending ? "Opening..." : "Open for Investment"}
                 </button>
               )}
             </div>
@@ -204,7 +215,7 @@ export default async function DealPage({ params }: Props) {
                       {inv.investor.entityName}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      ${inv.amount.toLocaleString()} • {inv.status}
+                      ${Number(inv.amount).toLocaleString()} • {inv.status}
                     </div>
                   </div>
                 ))}
@@ -213,9 +224,7 @@ export default async function DealPage({ params }: Props) {
           </section>
         </div>
 
-        {/* Sidebar */}
         <div className="space-y-6">
-          {/* Stats */}
           <div className="border rounded-lg p-6 space-y-4">
             <div>
               <div className="text-sm text-muted-foreground">
@@ -238,7 +247,6 @@ export default async function DealPage({ params }: Props) {
             </div>
           </div>
 
-          {/* Documents */}
           <section>
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-semibold">Documents</h3>

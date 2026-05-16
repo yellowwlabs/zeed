@@ -1,10 +1,9 @@
-// src/app/companies/[id]/deals/new/form.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { trpc } from "@/lib/trpc/client";
+import { useAuth } from "@/lib/auth-context";
 
 interface Props {
   companyId: string;
@@ -12,7 +11,7 @@ interface Props {
 
 export function NewDealForm({ companyId }: Props) {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { session, loading } = useAuth();
   const [error, setError] = useState<string | null>(null);
 
   const createDeal = trpc.deal.create.useMutation();
@@ -34,12 +33,13 @@ export function NewDealForm({ companyId }: Props) {
     governingLaw: "Delaware",
   });
 
-  if (status === "unauthenticated") {
-    router.push("/sign-in");
-    return null;
-  }
+  useEffect(() => {
+    if (!loading && !session) {
+      router.push("/sign-in");
+    }
+  }, [loading, session, router]);
 
-  if (status === "loading" || !session?.user) {
+  if (loading || !session) {
     return <div className="container mx-auto py-16">Loading...</div>;
   }
 
@@ -100,7 +100,6 @@ export function NewDealForm({ companyId }: Props) {
       <h1 className="text-3xl font-bold mb-8">Create a New Deal</h1>
 
       <form onSubmit={onSubmit} className="space-y-8">
-        {/* Basic Info */}
         <section className="space-y-4">
           <h2 className="text-xl font-semibold">Basic Information</h2>
 
@@ -149,7 +148,6 @@ export function NewDealForm({ companyId }: Props) {
           </div>
         </section>
 
-        {/* Fundraising Terms */}
         <section className="space-y-4">
           <h2 className="text-xl font-semibold">Fundraising Terms</h2>
 
@@ -198,7 +196,6 @@ export function NewDealForm({ companyId }: Props) {
           </div>
         </section>
 
-        {/* Deal-specific Terms */}
         {formData.dealType === "SAFE_ROUND" ? (
           <section className="space-y-4">
             <h2 className="text-xl font-semibold">SAFE Terms</h2>
