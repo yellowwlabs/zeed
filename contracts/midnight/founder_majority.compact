@@ -1,0 +1,91 @@
+pragma language_version >= 0.16 && <= 0.21;
+
+import CompactStandardLibrary;
+
+// =================================================================
+// FOUNDER MAJORITY CONTROL PROOF
+//
+// Proves that founders hold >= threshold (basis points, 0-10000)
+// of fully-diluted shares WITHOUT revealing actual share counts.
+//
+// Use case: Investors need assurance founders still control the
+// company before investing. Without ZK, founders must expose
+// full cap tables to every prospective investor.
+//
+// Privacy: The actual founder share count and total shares remain
+// witness values (off-chain, prover-only). Only the public claim
+// "founders >= threshold" is recorded on-chain.
+// =================================================================
+
+// ----------- Ledger (public state) -----------
+
+// The company this proof refers to (32-byte company identifier hash)
+export sealed ledger company_id: Bytes<32>;
+
+// The threshold in basis points (e.g., 5100 = 51.00%)
+export sealed ledger proof_threshold: Uint<64>;
+
+// Whether the most recent proof was valid
+export ledger last_proof_valid: Boolean;
+
+// Counter of how many proofs have been published
+export ledger proof_count: Counter;
+
+// ----------- Witnesses (private, prover-supplied) -----------
+
+// Total shares held by founders (fully-diluted)
+witness founder_shares(): Uint<64>;
+
+// Total fully-diluted shares outstanding
+witness total_diluted_shares(): Uint<64>;
+
+// ----------- Constructor -----------
+
+constructor(initCompanyId: Bytes<32>, initThreshold: Uint<64>) {
+  company_id = disclose(initCompanyId);
+  proof_threshold = disclose(initThreshold);
+  last_proof_valid = false;
+}
+
+// ----------- Circuits -----------
+
+// Publish a fresh proof that founders >= threshold.
+// Caller must supply founder_shares and total_diluted_shares as witnesses.
+// Circuit asserts the ratio condition; if it fails, the proof cannot be
+// generated, so a successful proof guarantees the condition holds.
+export circuit publish_proof(): [] {
+  const founders = founder_shares();
+  const total = total_diluted_shares();
+
+  // Sanity: cannot prove anything if total is zero
+  assert(disclose(total > 0), "total_diluted_shares must be positive");
+
+  // Sanity: founders cannot exceed total
+  assert(disclose(founders <= total), "founders cannot exceed total shares");
+
+  // Compute ratio in basis points: (founders * 10000) / total
+  // Note: division is not in stdlib, but we can express the constraint
+  // as: founders * 10000 >= threshold * total
+  //
+  // Cast to Field for the multiplication to avoid Uint overflow,
+  // since founders and total can each be up to Uint<64>.
+  const founders_f = founders as Field;
+  const total_f = total as Field;
+  const threshold_f = proof_threshold as Field;
+  const scale: Field = 10000;
+
+  const lhs = founders_f * scale;
+  const rhs = threshold_f * total_f;
+
+  // Disclosing only the boolean comparison result, NOT the values
+  assert(disclose(lhs >= rhs), "founders below threshold");
+
+  // Record that a valid proof was published
+  last_proof_valid = true;
+  proof_count.increment(1);
+}
+
+// Read-only check (no state change) — anyone can verify the last proof status
+export circuit is_currently_valid(): Boolean {
+  return last_proof_valid;
+}

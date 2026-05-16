@@ -1,0 +1,116 @@
+pragma language_version >= 0.16 && <= 0.21;
+
+import CompactStandardLibrary;
+
+// =================================================================
+// ACCREDITED INVESTOR PROOF
+//
+// Investor proves they meet SEC accredited investor criteria
+// (Rule 501 of Regulation D) without revealing actual income or
+// net worth figures.
+//
+// Income test: >= $200,000 individual (or $300,000 joint)
+// Net worth test: >= $1,000,000 excluding primary residence
+//
+// All monetary amounts in cents (Uint<64> can represent up to
+// ~$184.4 quadrillion in cents — ample headroom).
+// =================================================================
+
+// ----------- Public Constants -----------
+// SEC thresholds in cents
+// $200,000 = 20,000,000 cents
+// $1,000,000 = 100,000,000 cents
+
+// ----------- Enums -----------
+
+export enum AccreditationKind {
+  none,
+  by_income,
+  by_net_worth,
+  by_entity_status
+}
+
+// ----------- Ledger (public state) -----------
+
+// Hash of investor identity (e.g., persistentHash of their pubkey)
+export sealed ledger investor_id: Bytes<32>;
+
+// Current accreditation classification (none until proven)
+export ledger kind: AccreditationKind;
+
+// Block timestamp when proof was last verified
+export ledger verified_at: Uint<64>;
+
+// Validity window (90 days expressed as seconds)
+export sealed ledger validity_seconds: Uint<64>;
+
+// ----------- Witnesses (private) -----------
+
+// Investor's annual income in cents
+witness annual_income_cents(): Uint<64>;
+
+// Investor's net worth (excl. primary residence) in cents
+witness net_worth_cents(): Uint<64>;
+
+// Current Unix timestamp (provided by prover; verified off-chain)
+witness current_timestamp(): Uint<64>;
+
+// ----------- Constructor -----------
+
+constructor(initInvestorId: Bytes<32>) {
+  investor_id = disclose(initInvestorId);
+  kind = AccreditationKind.none;
+  verified_at = 0;
+  // 90 days = 90 * 86400 = 7,776,000 seconds
+  validity_seconds = 7776000;
+}
+
+// ----------- Circuits -----------
+
+// Prove by income: $200,000 / year
+export circuit prove_by_income(): [] {
+  const income = annual_income_cents();
+  const ts = current_timestamp();
+
+  // $200,000 = 20,000,000 cents
+  assert(disclose(income >= 20000000), "income below $200k threshold");
+
+  kind = AccreditationKind.by_income;
+  verified_at = disclose(ts);
+}
+
+// Prove by net worth: $1,000,000 (excluding primary residence)
+export circuit prove_by_net_worth(): [] {
+  const nw = net_worth_cents();
+  const ts = current_timestamp();
+
+  // $1,000,000 = 100,000,000 cents
+  assert(disclose(nw >= 100000000), "net worth below $1M threshold");
+
+  kind = AccreditationKind.by_net_worth;
+  verified_at = disclose(ts);
+}
+
+// Helper: check if the proof is still valid at the supplied "now"
+export circuit check_still_valid(): Boolean {
+  const now = current_timestamp();
+
+  // Cast to Field to safely compute (verified_at + validity_seconds)
+  const verified_f = verified_at as Field;
+  const validity_f = validity_seconds as Field;
+  const now_f = now as Field;
+
+  const expires_f = verified_f + validity_f;
+
+  // Disclose only the boolean
+  const is_valid_kind = kind != AccreditationKind.none;
+  const is_within_window = disclose(now_f <= expires_f);
+
+  return is_valid_kind && is_within_window;
+}
+
+// Revoke (e.g., investor's situation changed)
+export circuit revoke(): [] {
+  kind = AccreditationKind.none;
+  verified_at = 0;
+}
