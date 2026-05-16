@@ -15,14 +15,18 @@
     "incremental": true,
     "plugins": [{ "name": "next" }],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./frontend/*"]
     }
   },
   "include": [
     "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts"
+    "frontend/**/*.ts",
+    "frontend/**/*.tsx",
+    ".next/types/**/*.ts",
+    "backend/src/root.ts",
+    "backend/src/trpc.ts",
+    "backend/src/lib/db.ts",
+    "backend/src/lib/auth.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "backend", "contracts"]
 }
