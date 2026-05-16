@@ -45,3 +45,7 @@ contracts/**/cache
 
 # turbo
 .turbo
+
+.omc
+
+skills

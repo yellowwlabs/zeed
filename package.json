@@ -3,18 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "typecheck": "tsc --noEmit",
-    "db:generate": "prisma generate",
-    "db:push": "prisma db push",
-    "db:migrate": "prisma migrate dev",
-    "db:studio": "prisma studio",
-    "db:seed": "tsx prisma/seed.ts",
-    "test": "vitest",
-    "test:ui": "vitest --ui"
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "start": "turbo run start",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "db:generate": "turbo run db:generate",
+    "db:push": "turbo run db:push",
+    "db:migrate": "turbo run db:migrate",
+    "db:studio": "turbo run db:studio",
+    "db:seed": "turbo run db:seed",
+    "test": "turbo run test",
+    "test:ui": "turbo run test:ui"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.7.0",
@@ -60,6 +60,7 @@
     "prisma": "^5.22.0",
     "tailwindcss": "^3.4.13",
     "tsx": "^4.19.1",
+    "turbo": "^2.9.14",
     "typescript": "^5.6.3",
     "vitest": "^2.1.3"
   }
