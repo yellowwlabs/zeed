@@ -34,7 +34,7 @@ export class InvestorController {
     db: PrismaClient;
   }) {
     const service = new InvestorService(db);
-    return service.getInvestor(input.investorId);
+    return service.getInvestorWithDetails(input.investorId);
   }
 
   static async portfolio({

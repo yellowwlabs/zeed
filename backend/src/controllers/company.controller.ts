@@ -14,7 +14,7 @@ export class CompanyController {
 
   static async get({ input, db }: { input: any; db: PrismaClient }) {
     const service = new CompanyService(db);
-    return service.getCompanyById(input.companyId);
+    return service.getCompanyWithDetails(input.companyId);
   }
 
   static async inviteMember({ input, db }: { input: any; db: PrismaClient }) {

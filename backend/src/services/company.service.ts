@@ -34,7 +34,22 @@ export class CompanyService {
   async listCompaniesForUser(userId: string) {
     return this.db.company.findMany({
       where: { members: { some: { userId } } },
+      include: {
+        _count: { select: { deals: true } },
+        deals: { where: { status: "OPEN" }, select: { id: true, targetAmount: true } },
+      },
       orderBy: { createdAt: "desc" },
+    });
+  }
+
+  async getCompanyWithDetails(companyId: string) {
+    return this.db.company.findUniqueOrThrow({
+      where: { id: companyId },
+      include: {
+        members: { include: { user: { select: { id: true, name: true, email: true } } } },
+        _count: { select: { deals: true, capTableEntries: true } },
+        deals: { orderBy: { createdAt: "desc" }, take: 5 },
+      },
     });
   }
 

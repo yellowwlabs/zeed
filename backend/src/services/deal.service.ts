@@ -49,6 +49,7 @@ export class DealService {
         company: true,
         investments: { include: { investor: true } },
         documents: { select: { id: true, title: true, status: true } },
+        _count: { select: { investments: true } },
       },
     });
   }

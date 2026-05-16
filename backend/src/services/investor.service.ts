@@ -32,7 +32,19 @@ export class InvestorService {
   async listInvestors(userId: string) {
     return this.db.investor.findMany({
       where: { members: { some: { userId } } },
+      include: { _count: { select: { investments: true } } },
       orderBy: { createdAt: "desc" },
+    });
+  }
+
+  async getInvestorWithDetails(investorId: string) {
+    return this.db.investor.findUniqueOrThrow({
+      where: { id: investorId },
+      include: {
+        members: { include: { user: { select: { id: true, name: true, email: true } } } },
+        _count: { select: { investments: true } },
+        investments: { orderBy: { invitedAt: "desc" }, take: 5 },
+      },
     });
   }
 
