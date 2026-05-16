@@ -2,33 +2,34 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
 import { trpc } from "@/lib/trpc/client";
+import { useAuth } from "@/lib/auth-context";
 
 export default function SignUpPage() {
   const router = useRouter();
+  const { setSession } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const signUp = trpc.auth.signUp.useMutation();
+  const signIn = trpc.auth.signIn.useMutation();
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     try {
       await signUp.mutateAsync({ email, password, name });
-      const res = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
-      if (res?.error) {
-        setError("Account created but sign-in failed. Try signing in manually.");
-      } else {
-        router.push("/onboarding");
-      }
+      const result = await signIn.mutateAsync({ email, password });
+      setSession({
+        user: {
+          id: result.user.id,
+          email: result.user.email,
+          name: result.user.name,
+        },
+      }, result.sessionToken);
+      router.push("/onboarding");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign up failed");
     }

@@ -3,24 +3,20 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { useAuth } from "@/lib/auth-context";
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { session, loading } = useAuth();
 
   useEffect(() => {
-    if (status === "unauthenticated") {
+    if (!loading && !session) {
       router.push("/sign-in");
     }
-  }, [status, router]);
+  }, [loading, session, router]);
 
-  if (status === "loading") {
+  if (loading || !session) {
     return <div className="container mx-auto py-16">Loading...</div>;
-  }
-
-  if (!session?.user) {
-    return null;
   }
 
   return (
