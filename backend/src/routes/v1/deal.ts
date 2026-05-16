@@ -38,7 +38,7 @@ export const dealRouter = createTRPCRouter({
       return DealController.create({ ctx, input, db: ctx.db });
     }),
 
-  listForCompany: companyMemberProcedure
+  listForCompany: protectedProcedure
     .input(z.object({ companyId: z.string() }))
     .query(async ({ ctx, input }) => {
       return DealController.listForCompany({ input, db: ctx.db });

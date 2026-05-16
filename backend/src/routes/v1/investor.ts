@@ -29,7 +29,7 @@ export const investorRouter = createTRPCRouter({
     return InvestorController.list({ ctx, db: ctx.db });
   }),
 
-  get: investorMemberProcedure
+  get: protectedProcedure
     .input(z.object({ investorId: z.string() }))
     .query(async ({ ctx, input }) => {
       return InvestorController.get({ input, db: ctx.db });

@@ -1,8 +1,8 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import { type Request, type Response } from "express";
 import superjson from "superjson";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
+import { auth } from "./lib/auth";
+import { db } from "./lib/db";
 import { ZodError } from "zod";
 
 /**

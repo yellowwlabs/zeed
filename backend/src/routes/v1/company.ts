@@ -34,7 +34,7 @@ export const companyRouter = createTRPCRouter({
     return CompanyController.list({ ctx, db: ctx.db });
   }),
 
-  get: companyMemberProcedure
+  get: protectedProcedure
     .input(z.object({ companyId: z.string() }))
     .query(async ({ ctx, input }) => {
       return CompanyController.get({ input, db: ctx.db });

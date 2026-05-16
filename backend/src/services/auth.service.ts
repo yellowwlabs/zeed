@@ -34,4 +34,27 @@ export class AuthService {
   async hashPassword(password: string) {
     return argon2.hash(password);
   }
+
+  async verifyPassword(passwordHash: string, password: string) {
+    return argon2.verify(passwordHash, password);
+  }
+
+  async createSession(userId: string) {
+    const sessionToken = crypto.randomUUID();
+    const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+    return this.db.session.create({
+      data: {
+        sessionToken,
+        userId,
+        expires,
+      },
+    });
+  }
+
+  async deleteSession(sessionToken: string) {
+    return this.db.session.delete({
+      where: { sessionToken },
+    });
+  }
 }
