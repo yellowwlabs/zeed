@@ -1,0 +1,8 @@
+{
+  "version": 3,
+  "file": "index.js",
+  "sourceRoot": "../../../",
+  "sources": ["founder_majority.compact"],
+  "names": [],
+  "mappings": ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;EA2CA;;;;;;;;;;;;;;;;MAYA,AAAA,aAuBC;;;;;;;;;;;;;;;;;;;;;;OAAA;MAGD,AAAA,kBAEC;;;;;;;;;;;;;;;;;;;;;;OAAA;;;;;;GApCA;EAJD;;;;;UAAY,eAAwB;UAAE,eAAuB;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;IArB7D;;;;;;;;;yEAA2C;IAG3C;;;;;;;;;yEAA+C;IAG/C;;;;;;;;;yEAAwC;IAGxC;;;;;;;;;yEAAmC;IAajC;;;;;;;2HAAsB,eAAa;;yEAAzB;IACV;;;;;;;2HAA2B,eAAa;;yEAAzB;IACf;;;;;;;;;yEAAgB;;;;;;;GACjB;EAXD,AAAA,iBAAmC;;0DAAnC,cAAmC;;;;;;;;;;;;;;GAAA;EAGnC,AAAA,uBAAyC;;0DAAzC,oBAAyC;;;;;;;;;;;;;;GAAA;EAgBzC,AAAA,gBAuBC;UAtBO,UAA2B;UAC3B,OAA8B;4BAGpB,OAAK;;4BAGL,UAAQ,IAAI,OAAK;;UAM3B,KAAsB,GAAhB,UAAQ;UACd,KAA6B,2BAAvB;;;;;;;;;;;+GAAe;;kBAAG,OAAK;4BAGnB,KAAG,IAAI,KAAG;IAG1B;;;;;;;;;yEAAgB;UAChB,KAAW;IAAX;;;;;;;;;;6FAAA,KAAW;;;;wEAAA;;GACZ;EAGD,AAAA,qBAEC;mCADQ;;;;;;;;;;;wGAAgB;GACxB;;;;;;;;;;;;;;;;IA7DD;qCAAA;;;;;;;;;;;0GAA2C;KAAA;IAG3C;qCAAA;;;;;;;;;;;0GAA+C;KAAA;IAG/C;qCAAA;;;;;;;;;;;0GAAwC;KAAA;IAGxC;qCAAA;;;;;;;;;;;0GAAmC;KAAA;;;;;;;;;;;;;"
+}

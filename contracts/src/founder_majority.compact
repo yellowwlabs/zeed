@@ -63,19 +63,12 @@ export circuit publish_proof(): [] {
   // Sanity: founders cannot exceed total
   assert(disclose(founders <= total), "founders cannot exceed total shares");
 
-  // Compute ratio in basis points: (founders * 10000) / total
-  // Note: division is not in stdlib, but we can express the constraint
-  // as: founders * 10000 >= threshold * total
-  //
-  // Cast to Field for the multiplication to avoid Uint overflow,
-  // since founders and total can each be up to Uint<64>.
-  const founders_f = founders as Field;
-  const total_f = total as Field;
-  const threshold_f = proof_threshold as Field;
-  const scale: Field = 10000;
-
-  const lhs = founders_f * scale;
-  const rhs = threshold_f * total_f;
+  // Compute ratio in basis points: founders * 10000 >= threshold * total
+  // Use integer literals so Compact infers a Uint wide enough to hold the
+  // product without overflow (Uint<64> * Uint<14> => ~Uint<78>).
+  // Relational operators require Uint, not Field.
+  const lhs = founders * 10000;
+  const rhs = proof_threshold * total;
 
   // Disclosing only the boolean comparison result, NOT the values
   assert(disclose(lhs >= rhs), "founders below threshold");

@@ -95,16 +95,13 @@ export circuit prove_by_net_worth(): [] {
 export circuit check_still_valid(): Boolean {
   const now = current_timestamp();
 
-  // Cast to Field to safely compute (verified_at + validity_seconds)
-  const verified_f = verified_at as Field;
-  const validity_f = validity_seconds as Field;
-  const now_f = now as Field;
+  // Uint<64> arithmetic — no overflow risk: validity_seconds is 7,776,000
+  // and Uint<64> max is ~1.8×10^19, so verified_at + validity_seconds is safe.
+  // Relational operators require Uint<N>, not Field.
+  const expires_at = verified_at + validity_seconds;
 
-  const expires_f = verified_f + validity_f;
-
-  // Disclose only the boolean
   const is_valid_kind = kind != AccreditationKind.none;
-  const is_within_window = disclose(now_f <= expires_f);
+  const is_within_window = disclose(now <= expires_at);
 
   return is_valid_kind && is_within_window;
 }
