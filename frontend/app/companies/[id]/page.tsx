@@ -87,7 +87,7 @@ export default function CompanyPage({ params }: Props) {
               <p className="text-muted-foreground">No deals yet</p>
             ) : (
               <div className="space-y-2">
-                {company.deals.map((deal) => (
+                {company.deals.map((deal: any) => (
                   <Link
                     key={deal.id}
                     href={`/companies/${company.id}/deals/${deal.id}`}
@@ -129,7 +129,7 @@ export default function CompanyPage({ params }: Props) {
               </Link>
             </div>
             <div className="space-y-2">
-              {company.members.map((member) => (
+              {company.members.map((member: any) => (
                 <div key={member.id} className="text-sm p-2 border rounded">
                   <div className="font-medium">{member.user.name}</div>
                   <div className="text-xs text-muted-foreground">

@@ -76,7 +76,7 @@ export default function InvestorPage({ params }: Props) {
               <p className="text-muted-foreground">No investments yet</p>
             ) : (
               <div className="space-y-2">
-                {investor.investments.map((inv) => (
+                {investor.investments.map((inv: any) => (
                   <div
                     key={inv.id}
                     className="p-4 border rounded-lg"
@@ -113,7 +113,7 @@ export default function InvestorPage({ params }: Props) {
               </Link>
             </div>
             <div className="space-y-2">
-              {investor.members.map((member) => (
+              {investor.members.map((member: any) => (
                 <div key={member.id} className="text-sm p-2 border rounded">
                   <div className="font-medium">{member.user.name}</div>
                   <div className="text-xs text-muted-foreground">

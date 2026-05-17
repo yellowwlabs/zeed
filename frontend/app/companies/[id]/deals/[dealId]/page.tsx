@@ -206,7 +206,7 @@ export default function DealPage({ params }: Props) {
               <p className="text-muted-foreground">No investments yet</p>
             ) : (
               <div className="space-y-2">
-                {deal.investments.map((inv) => (
+                {deal.investments.map((inv: any) => (
                   <div
                     key={inv.id}
                     className="p-4 border rounded-lg"
@@ -233,7 +233,7 @@ export default function DealPage({ params }: Props) {
               <div className="text-2xl font-bold">
                 $
                 {deal.investments
-                  .reduce((sum, inv) => sum + Number(inv.amount), 0)
+                  .reduce((sum: number, inv: any) => sum + Number(inv.amount), 0)
                   .toLocaleString()}
               </div>
             </div>
@@ -261,7 +261,7 @@ export default function DealPage({ params }: Props) {
               <p className="text-sm text-muted-foreground">No documents</p>
             ) : (
               <div className="space-y-2">
-                {deal.documents.map((doc) => (
+                {deal.documents.map((doc: any) => (
                   <Link
                     key={doc.id}
                     href={`/companies/${companyId}/deals/${dealId}/documents/${doc.id}`}
