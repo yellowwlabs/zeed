@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { TRPCProvider } from "@/lib/trpc/provider";
+import { WalletProvider } from "@/lib/wallet-context";
 
 export const metadata: Metadata = {
   title: "Fundraise SaaS",
@@ -11,7 +12,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className="min-h-screen bg-background font-sans antialiased">
-        <TRPCProvider>{children}</TRPCProvider>
+        <TRPCProvider>
+          <WalletProvider>{children}</WalletProvider>
+        </TRPCProvider>
       </body>
     </html>
   );

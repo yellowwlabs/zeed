@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc/client";
 import { useAuth } from "@/lib/auth-context";
+import { useWallet } from "@/lib/wallet-context";
+import { WalletButton } from "@/lib/wallet-button";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -35,9 +37,12 @@ export default function DashboardPage() {
     <main className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">
-          Signed in as {session.user.email}
-        </p>
+        <div className="flex items-center gap-4">
+          <p className="text-sm text-muted-foreground">
+            Signed in as {session.user.email}
+          </p>
+          <WalletButton />
+        </div>
       </div>
 
       <section className="mb-12">
@@ -56,7 +61,7 @@ export default function DashboardPage() {
           </p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {companies.map((c) => (
+            {companies.map((c: any) => (
               <Link
                 key={c.id}
                 href={`/companies/${c.id}`}
@@ -89,7 +94,7 @@ export default function DashboardPage() {
           </p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {investors.map((i) => (
+            {investors.map((i: any) => (
               <Link
                 key={i.id}
                 href={`/investors/${i.id}`}
