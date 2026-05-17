@@ -9,6 +9,7 @@ interface Session {
     email?: string | null;
     name?: string | null;
     image?: string | null;
+    role?: string | null;
   };
 }
 
@@ -50,6 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           email: me.email,
           name: me.name,
           image: me.image,
+          role: (me as any).role ?? "USER",
         },
       });
     } else if (meError) {
