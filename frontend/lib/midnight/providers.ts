@@ -48,7 +48,7 @@ export function makeZKConfigProvider(contractName: "accreditation" | "founder_ma
     return new Uint8Array(await res.arrayBuffer());
   }
 
-  const base = `/api/zk/${contractName}`;
+  const base = `/contracts/${contractName}`;
   return {
     getZKIR: (circuitId: string) => fetchBytes(`${base}/zkir/${circuitId}.zkir`),
     getProverKey: (circuitId: string) => fetchBytes(`${base}/keys/${circuitId}.prover`),
