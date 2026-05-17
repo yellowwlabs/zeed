@@ -7,8 +7,9 @@ import { trpc } from "./trpc/client";
 type NetworkId = "preview" | "preprod" | "mainnet";
 
 interface ShieldedAddresses {
-  encryptionPublicKey: string;
-  coinPublicKey: string;
+  shieldedAddress: string;
+  shieldedCoinPublicKey: string;
+  shieldedEncryptionPublicKey: string;
 }
 
 interface DustBalance {
@@ -89,8 +90,8 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         const addresses = await connected.getShieldedAddresses();
         await saveWallet.mutateAsync({
           networkId,
-          encryptionPublicKey: addresses.encryptionPublicKey,
-          coinPublicKey: addresses.coinPublicKey,
+          encryptionPublicKey: addresses.shieldedEncryptionPublicKey,
+          coinPublicKey: addresses.shieldedCoinPublicKey,
         });
       } catch (saveErr: any) {
         // If it's a conflict (wallet belongs to another account), disconnect
