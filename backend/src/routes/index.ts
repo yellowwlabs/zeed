@@ -9,6 +9,7 @@ import { walletRouter } from "./v1/wallet";
 import { accreditationRouter } from "./v1/accreditation";
 import { founderMajorityRouter } from "./v1/founder-majority";
 import { bannerRouter } from "./v1/banner";
+import { adminRouter } from "./v1/admin";
 
 export const router = createTRPCRouter({
   auth: authRouter,
@@ -21,4 +22,5 @@ export const router = createTRPCRouter({
   accreditation: accreditationRouter,
   founderMajority: founderMajorityRouter,
   banner: bannerRouter,
+  admin: adminRouter,
 });

@@ -25,6 +25,7 @@ export class AuthService {
         email: true,
         name: true,
         image: true,
+        role: true,
         companyMembers: { include: { company: true } },
         investorMembers: { include: { investor: true } },
       },
