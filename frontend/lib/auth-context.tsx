@@ -26,7 +26,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [sessionToken, setSessionTokenState] = useState<string | null>(null);
 
-  const { data: me } = trpc.auth.me.useQuery(undefined, {
+  const { data: me, isLoading: meLoading, isError: meError } = trpc.auth.me.useQuery(undefined, {
     enabled: !!sessionToken,
     retry: false,
   });
@@ -35,11 +35,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const storedToken = localStorage.getItem("sessionToken");
     if (storedToken) {
       setSessionTokenState(storedToken);
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   useEffect(() => {
+    if (!sessionToken) return;
+    if (meLoading) return;
     if (me) {
       setSessionState({
         user: {
@@ -49,10 +52,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           image: me.image,
         },
       });
-    } else if (sessionToken) {
+    } else if (meError) {
       setSessionState(null);
+      setSessionTokenState(null);
+      localStorage.removeItem("sessionToken");
     }
-  }, [me, sessionToken]);
+    setLoading(false);
+  }, [me, meLoading, meError, sessionToken]);
 
   const setSession = (newSession: Session, token: string) => {
     setSessionState(newSession);
