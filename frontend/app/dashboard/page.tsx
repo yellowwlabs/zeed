@@ -166,7 +166,7 @@ export default function DashboardPage() {
                 </button>
 
                 <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2.5 z-20">
-                  {banners.map((_, i) => (
+                  {banners.map((_: unknown, i: number) => (
                     <button
                       key={i}
                       onClick={() => setActiveBanner(i)}
