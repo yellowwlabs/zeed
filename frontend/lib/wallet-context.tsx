@@ -71,7 +71,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const [wallet, setWallet] = useState<ConnectedWallet | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const connect = useCallback(async (networkId: NetworkId = "preview") => {
+  const connect = useCallback(async (networkId: NetworkId = "preprod") => {
     setStatus("detecting");
     setError(null);
 

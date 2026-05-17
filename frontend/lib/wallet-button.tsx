@@ -60,7 +60,7 @@ export function WalletButton() {
   return (
     <div className="flex flex-col items-end gap-1">
       <button
-        onClick={() => connect("preview")}
+        onClick={() => connect("preprod")}
         className="rounded-md bg-primary px-3 py-1.5 text-xs text-primary-foreground hover:bg-primary/90"
       >
         Connect 1AM Wallet
