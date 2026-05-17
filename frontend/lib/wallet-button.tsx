@@ -10,7 +10,7 @@ export function WalletButton() {
 
   async function handleFetchBalances() {
     if (!wallet) return;
-    const b = await wallet.getShieldedBalances();
+    const b = await wallet.getUnshieldedBalances();
     setBalances(b);
     setShowBalances(true);
   }

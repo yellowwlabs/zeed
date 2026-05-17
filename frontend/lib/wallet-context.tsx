@@ -1,6 +1,8 @@
 "use client";
 
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react";
+import type { InitialAPI } from "@midnight-ntwrk/dapp-connector-api";
+import { trpc } from "./trpc/client";
 
 type NetworkId = "preview" | "preprod" | "mainnet";
 
@@ -33,17 +35,8 @@ interface ConnectedWallet {
   submitTransaction(hex: string): Promise<void>;
 }
 
-interface WalletAPI {
-  name: string;
-  apiVersion: string;
-  connect(networkId: NetworkId): Promise<ConnectedWallet>;
-}
-
-declare global {
-  interface Window {
-    midnight?: Record<string, WalletAPI>;
-  }
-}
+// window.midnight is typed globally by @midnight-ntwrk/dapp-connector-api
+// WalletAPI = InitialAPI from the package
 
 type WalletStatus = "idle" | "detecting" | "not_found" | "connecting" | "connected" | "error";
 
@@ -57,7 +50,7 @@ interface WalletContextType {
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
-async function detect1AMWallet(): Promise<WalletAPI | null> {
+async function detect1AMWallet(): Promise<InitialAPI | null> {
   for (let i = 0; i < 50; i++) {
     const w = window.midnight?.["1am"];
     if (w) return w;
@@ -70,6 +63,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<WalletStatus>("idle");
   const [wallet, setWallet] = useState<ConnectedWallet | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const saveWallet = trpc.wallet.connect.useMutation();
+  const removeWallet = trpc.wallet.disconnect.useMutation();
 
   const connect = useCallback(async (networkId: NetworkId = "preprod") => {
     setStatus("detecting");
@@ -84,33 +80,54 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
     setStatus("connecting");
     try {
-      const connected = await api.connect(networkId);
+      const connected = await api.connect(networkId) as unknown as ConnectedWallet;
       setWallet(connected);
       setStatus("connected");
+
+      // Save wallet to DB (best-effort — don't block UI on failure)
+      try {
+        const addresses = await connected.getShieldedAddresses();
+        await saveWallet.mutateAsync({
+          networkId,
+          encryptionPublicKey: addresses.encryptionPublicKey,
+          coinPublicKey: addresses.coinPublicKey,
+        });
+      } catch (saveErr: any) {
+        // If it's a conflict (wallet belongs to another account), disconnect
+        if (saveErr?.data?.code === "CONFLICT" || saveErr?.message?.includes("another account")) {
+          setWallet(null);
+          setStatus("error");
+          setError("This wallet is already connected to another account.");
+          localStorage.removeItem("wallet_connected");
+          return;
+        }
+        // Other errors (e.g. not logged in) — wallet still usable locally
+        console.warn("Could not save wallet to DB:", saveErr?.message);
+      }
     } catch (e) {
       setStatus("error");
       setError(e instanceof Error ? e.message : "Failed to connect wallet");
     }
-  }, []);
+  }, [saveWallet]);
 
   const disconnect = useCallback(() => {
     setWallet(null);
     setStatus("idle");
     setError(null);
-  }, []);
+    removeWallet.mutate();
+  }, [removeWallet]);
 
-  // Auto-reconnect if wallet was previously connected (session hint)
   useEffect(() => {
-    if (typeof window !== "undefined" && sessionStorage.getItem("wallet_connected") === "1") {
+    if (typeof window !== "undefined" && localStorage.getItem("wallet_connected") === "1") {
       connect();
     }
   }, [connect]);
 
   useEffect(() => {
     if (status === "connected") {
-      sessionStorage.setItem("wallet_connected", "1");
+      localStorage.setItem("wallet_connected", "1");
     } else if (status === "idle") {
-      sessionStorage.removeItem("wallet_connected");
+      localStorage.removeItem("wallet_connected");
     }
   }, [status]);
 
