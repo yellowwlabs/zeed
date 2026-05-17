@@ -1,175 +1,261 @@
-# Fundraise SaaS
+# Midnight DeFi Angel
 
-A two-sided marketplace for startup fundraising contracts: SAFEs and convertible notes, with cap table management, native e-signature, and Midnight-powered selective disclosure proofs.
+A two-sided startup fundraising platform with privacy-preserving zero-knowledge proofs. Issue SAFEs and convertible notes, manage cap tables, run e-signature workflows, and prove compliance facts on-chain without exposing sensitive data — powered by the Midnight network.
 
-## Stack
+## Features
 
-- **Next.js 14** (App Router, TypeScript)
-- **Prisma** + **PostgreSQL**
-- **tRPC** (type-safe API end to end)
-- **NextAuth v5** (Credentials provider with Argon2 hashing)
-- **Tailwind CSS** + shadcn/ui primitives
-- **Decimal.js** for all financial math (never floats for money)
-- **Midnight Network** (Compact contracts for selective disclosure)
-- **Vitest** for unit tests
+- **Deal Lifecycle Management** — Create rounds, set terms (valuation caps, discounts), invite investors, track commitments through signing and funding
+- **SAFE & Convertible Note Instruments** — Full support for YC-style post-money SAFEs and convertible notes with precise Decimal.js math
+- **Cap Table Management** — Track equity holders, security types, vesting schedules (cliff + graded), and conversion events
+- **Document Templating & E-Signature** — Template-based document generation with signature blocks, ordered signing, tamper detection via content hashing, and full audit trails
+- **Data Room** — Secure document sharing with per-investor access grants, watermarking, and expiration
+- **Midnight ZK Proofs** — Selective disclosure proofs for founder majority control and investor accreditation without revealing underlying data
+- **Wallet Integration** — Connect Midnight-compatible wallets for on-chain interactions
+- **Role-Based Access Control** — Company members and investor members with granular permissions enforced at the tRPC middleware layer
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| **Monorepo** | pnpm workspaces + Turborepo |
+| **Frontend** | Next.js 16 (App Router), React 19, TypeScript |
+| **Backend** | Express 5 + tRPC v11, TypeScript |
+| **Database** | PostgreSQL 18 + Prisma 7 |
+| **UI** | Tailwind CSS 3 + shadcn/ui (Radix primitives) |
+| **Auth** | JWT-based with Argon2id password hashing |
+| **ZK/Blockchain** | Midnight Network (Compact contracts, shielded state) |
+| **Financial Math** | Decimal.js (28-digit precision, no floats) |
+| **Validation** | Zod (end-to-end type safety) |
+| **Testing** | Vitest |
 
 ## Project Structure
 
 ```
 .
-├── contracts/midnight/             # Compact smart contracts
-│   ├── founder_majority.compact    # Demo proof #1: founder control
-│   └── accreditation.compact       # Demo proof #2: accredited investor
-├── prisma/
-│   └── schema.prisma               # Full data model
-├── src/
-│   ├── app/                        # Next.js App Router pages + API routes
-│   │   ├── api/auth/[...nextauth]  # NextAuth handler
-│   │   ├── api/trpc/[trpc]         # tRPC handler
-│   │   ├── dashboard/              # Authenticated dashboard
-│   │   ├── sign-in/, sign-up/      # Auth pages
-│   │   └── page.tsx                # Landing
-│   ├── server/api/
-│   │   ├── trpc.ts                 # tRPC init + middleware
-│   │   ├── root.ts                 # Root router
-│   │   └── routers/
-│   │       ├── auth.ts             # Sign-up, me
-│   │       ├── company.ts          # Issuer CRUD
-│   │       ├── investor.ts         # Investor CRUD
-│   │       ├── deal.ts             # Deal lifecycle
-│   │       ├── investment.ts       # Investor commitments
-│   │       └── capTable.ts         # Cap table management
+├── backend/                        # Express + tRPC API server
+│   ├── src/
+│   │   ├── index.ts                # Entry point (port 3001)
+│   │   ├── app.ts                  # Express app + middleware
+│   │   ├── trpc.ts                 # tRPC context + middleware
+│   │   ├── routes/v1/              # tRPC routers
+│   │   │   ├── auth.ts             # Registration, login, session
+│   │   │   ├── company.ts          # Company CRUD + membership
+│   │   │   ├── investor.ts         # Investor entity CRUD
+│   │   │   ├── deal.ts             # Deal creation + lifecycle
+│   │   │   ├── investment.ts       # Investor commitments
+│   │   │   ├── capTable.ts         # Cap table entries + vesting
+│   │   │   ├── wallet.ts           # Midnight wallet connection
+│   │   │   ├── accreditation.ts    # ZK accreditation proofs
+│   │   │   ├── founder-majority.ts # ZK founder majority proofs
+│   │   │   └── banner.ts           # Platform banners
+│   │   ├── controllers/            # Request handlers
+│   │   └── services/               # Business logic layer
+│   └── prisma/
+│       └── schema.prisma           # Full data model (20+ models)
+│
+├── frontend/                       # Next.js 16 web application
+│   ├── app/
+│   │   ├── page.tsx                # Landing page
+│   │   ├── sign-in/                # Authentication
+│   │   ├── sign-up/                # Registration
+│   │   ├── dashboard/              # User dashboard
+│   │   ├── web3-dashboard/         # Wallet + ZK proof dashboard
+│   │   ├── companies/              # Company management
+│   │   ├── investors/              # Investor management
+│   │   ├── onboarding/             # User onboarding flow
+│   │   └── api/                    # API routes
 │   ├── lib/
-│   │   ├── db.ts                   # Prisma client
-│   │   ├── auth.ts                 # NextAuth config
-│   │   ├── utils.ts                # Helpers
-│   │   ├── trpc/                   # Client + provider
-│   │   └── finance/
-│   │       ├── conversion.ts       # SAFE/Note conversion math
-│   │       └── conversion.test.ts  # 11 unit tests (all passing)
+│   │   ├── trpc/                   # tRPC client + provider
+│   │   ├── wallet-context.tsx      # Midnight wallet state
+│   │   └── finance/                # SAFE/note conversion math
 │   └── types/                      # Shared TypeScript types
-└── package.json
+│
+├── contracts/                      # Midnight Compact contracts
+│   ├── src/
+│   │   └── managed/
+│   │       ├── accreditation/      # Investor accreditation proof
+│   │       └── founder_majority/   # Founder control proof
+│   └── scripts/                    # Compile + artifact management
+│
+├── docker/
+│   ├── database/compose.yaml       # PostgreSQL 18
+│   └── midnight/                   # Midnight infrastructure
+│       ├── node/compose.yaml       # Midnight node
+│       ├── indexer/compose.yaml    # Chain indexer
+│       └── proofserver/compose.yaml # Proof server
+│
+├── docs/                           # Project documentation
+├── Makefile                        # Developer commands
+├── turbo.json                      # Turborepo pipeline
+└── pnpm-workspace.yaml             # Workspace definition
 ```
 
 ## Quick Start
 
+### Prerequisites
+
+- Node.js 20+
+- pnpm 11+
+- PostgreSQL 16+ (or Docker)
+- Midnight Compact compiler (for contract development)
+
 ### 1. Install dependencies
 
 ```bash
-npm install
+pnpm install
 ```
 
-### 2. Set up environment
+### 2. Configure environment
 
 ```bash
-cp .env.example .env
-# Edit .env with your database URL and secrets
+cp .env.example .env    # If available, otherwise edit .env directly
 ```
 
-Generate an AUTH_SECRET:
-```bash
-openssl rand -base64 32
+Required environment variables:
+```env
+DATABASE_URL="postgresql://user:pass@localhost:5432/midnight_defi_angel"
+PORT=3001
+AUTH_SECRET="<generate-with-openssl-rand-base64-32>"
+NODE_ENV=development
 ```
 
-### 3. Set up Postgres
-
-Use Docker for a quick local Postgres:
-```bash
-docker run --name fundraise-pg \
-  -e POSTGRES_PASSWORD=postgres \
-  -e POSTGRES_DB=fundraise_saas \
-  -p 5432:5432 -d postgres:16
-```
-
-### 4. Run migrations
+### 3. Start PostgreSQL
 
 ```bash
-npm run db:push     # Creates all tables from schema
-npm run db:generate # Generates Prisma client
+docker compose -f docker/database/compose.yaml up -d
 ```
 
-### 5. Start the dev server
+### 4. Set up the database
 
 ```bash
-npm run dev
+make db-generate    # Generate Prisma client
+make db-push        # Push schema to database
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+### 5. Start development servers
+
+```bash
+make dev            # Frontend (3000) + Backend (3001) in parallel
+```
+
+Or run individually:
+```bash
+make dev-frontend   # Next.js on port 3000
+make dev-backend    # Express on port 3001
+```
 
 ### 6. Run tests
 
 ```bash
-npm run test          # Run all tests
-npm run test:ui       # Visual test runner
+make test           # All workspace tests
+make test-ui        # Vitest UI mode
+make contracts-test # Midnight contract tests
 ```
 
-The conversion math tests (`src/lib/finance/conversion.test.ts`) cover SAFE conversion with cap, discount, and combined modes, plus note interest accrual and dilution math.
+## Makefile Commands
 
-## Architecture Notes
+Run `make help` for the full list. Key commands:
 
-### Why this data model
+| Command | Description |
+|---------|-------------|
+| `make dev` | Start frontend + backend in parallel |
+| `make build` | Build all packages |
+| `make db-generate` | Generate Prisma client |
+| `make db-push` | Push schema to database |
+| `make db-migrate` | Run migrations (dev) |
+| `make db-studio` | Open Prisma Studio GUI |
+| `make lint` | Lint all packages |
+| `make typecheck` | TypeScript type checking |
+| `make test` | Run all tests |
+| `make contracts-test` | Run Midnight contract tests |
+| `make clean` | Remove build artifacts |
+| `make install-fresh` | Clean reinstall of all dependencies |
 
-- **User**, **Company**, **Investor** are separate entities. A single user can be a member of multiple companies and multiple investor entities (e.g., a founder who also angel invests).
-- **CompanyMember** / **InvestorMember** join tables hold roles. tRPC middleware (`companyMemberProcedure`, `investorMemberProcedure`) enforces membership on every request.
-- **Deal** holds default terms shared by all investments in the round. **Investment** can override terms per investor (e.g., one investor gets a lower cap).
-- **Document** is immutable once signing starts (`status: AWAITING_SIGNATURES`). `contentHash` is recomputed on every signature to detect tampering.
-- **AuditEvent** is append-only. Never deleted. Indexed by `resourceType + resourceId` for fast lookup.
+## Architecture
 
-### Why Decimal.js for money
+### Monorepo Layout
 
-Floats are catastrophically wrong for currency. `0.1 + 0.2 !== 0.3` in JavaScript. Decimal.js gives us 28 significant digits and proper rounding. All financial inputs and outputs are strings; conversion happens at the boundary.
+Three packages managed by pnpm workspaces and orchestrated by Turborepo:
 
-### Why tRPC + middleware-based authz
+- **`frontend`** — Next.js 16 app with App Router, tRPC client, React Query, and Midnight wallet integration
+- **`backend`** — Express 5 server hosting tRPC v11 routers with Prisma ORM
+- **`contracts`** — Midnight Compact contract source, compiled artifacts, and TypeScript bindings
 
-Every authorization check is a tRPC middleware. You can't accidentally expose a query without auth because the middleware runs before the handler. `companyMemberProcedure` requires `companyId` in input and verifies membership; same for `investorMemberProcedure`.
+The `contracts` package exports compiled contract bindings that the frontend consumes via `workspace:*` dependency.
 
-## Midnight Contracts
+### Data Model
 
-The two Compact contracts in `contracts/midnight/` implement selective disclosure proofs:
+The Prisma schema defines 20+ models across these domains:
 
-### 1. `founder_majority.compact`
+**Identity & Auth** — `User`, `Account`, `Session`, `VerificationToken`, `UserRole`
 
-Founders prove they hold ≥ N basis points of fully-diluted shares without revealing exact counts. The contract takes founder shares and total shares as witness (private) inputs and asserts the ratio via cross-multiplication: `founders * 10000 >= threshold * total`. If the assertion fails, the proof can't be generated, so a successful proof guarantees the constraint.
+**Companies (Issuers)** — `Company`, `CompanyMember` with roles and primary contact tracking
 
-### 2. `accreditation.compact`
+**Investors** — `Investor` entity, `InvestorMember` for user associations, `AccreditationProof` for ZK verification
 
-Investors prove they meet SEC Rule 501 thresholds (income ≥ $200k or net worth ≥ $1M) without revealing actual figures. Includes a 90-day validity window per SEC guidance.
+**Cap Table** — `CapTableEntry` with security types, `VestingSchedule` (cliff + graded), share counts as BigInt
 
-### Compiling Compact contracts
+**Deals & Instruments** — `Deal` with default terms, `Investment` with per-investor term overrides, `ConversionEvent` for SAFE/note conversion tracking
 
-You'll need the Midnight Compact compiler. Both contracts target language version 0.16–0.21. See [docs.midnight.network](https://docs.midnight.network) for compiler installation and proof server setup.
+**Documents & Signatures** — `DocumentTemplate`, `Document` with content hash tamper detection, `SignatureBlock` with ordered signing, `Signature` with IP/UA audit data
 
-The contracts are designed so that the TypeScript backend will:
-1. Deploy one `accreditation.compact` instance per investor
-2. Deploy one `founder_majority.compact` instance per company
-3. Prove circuits client-side (where the witness data lives privately)
-4. Submit proofs to the network; the platform verifies on-chain state
+**Data Room** — `DataRoomItem` for deal documents, `DataRoomAccess` with per-investor grants and watermarking
 
-## Roadmap from this skeleton
+**Audit** — `AuditEvent` (append-only, indexed by resource type + ID)
 
-This skeleton gives you:
-- Auth (sign-up + sign-in with Argon2 password hashing)
-- Full data model (companies, investors, deals, investments, documents, signatures, cap table, audit log)
-- tRPC routers for all core resources with role-based authorization
-- Conversion math library with 11 passing tests
-- Two compiled Midnight contracts
+**Midnight Integration** — `WalletConnection`, `FounderMajorityProof`, `AccreditationProof`
 
-Next pieces to build:
-1. **Document templating engine** — Handlebars-based, with YC SAFE and standard convertible note templates
-2. **PDF generation** — `@react-pdf/renderer` for the final signed document
-3. **E-signature UI** — Canvas-based drawing, typed signature, ESIGN consent flow
-4. **S3 integration** — for storing PDFs and data room files
-5. **Email** — Resend for signing invitations and notifications
-6. **Midnight bridge** — TypeScript SDK calls to deploy contracts and submit proofs
+### Authorization Model
 
-## Security notes
+All authorization is enforced through tRPC middleware:
 
-- Passwords hashed with Argon2id (current best practice)
-- Session strategy: JWT (no server-side session table needed for credentials auth)
-- All sensitive financial fields encrypted at rest (you'll need to add app-level encryption for `taxId`, `wireInstructions`)
-- SOC 2 Type II should be your goal before going to GA — start with audit log discipline (already built in)
-- Never custody investor funds yourself; integrate with Modern Treasury, Stripe Connect, or Mercury for escrow
+- `companyMemberProcedure` — Requires `companyId` in input, verifies user membership
+- `investorMemberProcedure` — Requires `investorId` in input, verifies user membership
+- Procedures are composable; you cannot accidentally expose a query without auth
 
-## Legal
+### Midnight ZK Proofs
 
-This software does not constitute legal or financial advice. Users must engage their own counsel. The platform is a document automation tool, not a law firm. Securities offerings using documents generated by this platform must comply with applicable federal and state securities laws including Reg D, Reg CF, or Reg A+ as appropriate.
+Two Compact contracts implement selective disclosure:
+
+**`founder_majority.compact`** — Founders prove they hold >= N basis points of fully-diluted shares without revealing exact counts. Uses cross-multiplication to avoid division in ZK circuits.
+
+**`accreditation.compact`** — Investors prove they meet SEC Rule 501 thresholds (income >= $200k or net worth >= $1M) without revealing actual figures. Includes a 90-day validity window.
+
+To compile contracts:
+```bash
+cd contracts && pnpm run compact
+```
+
+See [docs.midnight.network](https://docs.midnight.network) for compiler installation.
+
+### Why Decimal.js
+
+Floating-point arithmetic is unsuitable for financial calculations (`0.1 + 0.2 !== 0.3` in JavaScript). Decimal.js provides 28 significant digits with proper rounding. All financial values are stored as `Decimal` with `@db.Decimal(20, 10)` in Prisma and serialized as strings at API boundaries.
+
+## Midnight Infrastructure
+
+Local Midnight infrastructure is available via Docker Compose:
+
+```bash
+# Midnight node
+docker compose -f docker/midnight/node/compose.yaml up -d
+
+# Indexer
+docker compose -f docker/midnight/indexer/compose.yaml up -d
+
+# Proof server
+docker compose -f docker/midnight/proofserver/compose.yaml up -d
+```
+
+## Security
+
+- **Password hashing** — Argon2id (current best practice)
+- **Session management** — JWT-based (no server-side session table)
+- **Document integrity** — Content hash recomputed on every signature to detect tampering
+- **Audit trail** — Append-only `AuditEvent` log, never deleted, indexed for fast lookup
+- **Financial precision** — Decimal.js for all monetary values, BigInt for share counts
+- **Input validation** — Zod schemas at every API boundary
+
+## License
+
+Private — All rights reserved.
