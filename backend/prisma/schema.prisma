@@ -20,7 +20,7 @@ model User {
   name          String
   passwordHash  String?
   image         String?
-  role          String    @default("USER")
+  role          UserRole  @default(USER)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -33,6 +33,11 @@ model User {
   accreditationProof AccreditationProof?
   walletConnection   WalletConnection?
   banners            Banner[]
+}
+
+enum UserRole {
+  USER
+  ADMIN
 }
 
 model Account {
