@@ -20,6 +20,7 @@ model User {
   name          String
   passwordHash  String?
   image         String?
+  role          String    @default("USER")
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -31,6 +32,7 @@ model User {
   auditEvents        AuditEvent[]
   accreditationProof AccreditationProof?
   walletConnection   WalletConnection?
+  banners            Banner[]
 }
 
 model Account {
@@ -414,4 +416,26 @@ model FounderMajorityProof {
   updatedAt       DateTime  @updatedAt
 
   company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}
+
+// ============================================================
+// BANNERS
+// ============================================================
+
+model Banner {
+  id          String   @id @default(cuid())
+  title       String
+  subtitle    String?
+  imageUrl    String?
+  ctaText     String?
+  ctaUrl      String?
+  isActive    Boolean  @default(true)
+  order       Int      @default(0)
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdBy User @relation(fields: [createdById], references: [id])
+
+  @@index([isActive, order])
 }
