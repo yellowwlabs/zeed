@@ -4,8 +4,8 @@ import { TRPCProvider } from "@/lib/trpc/provider";
 import { WalletProvider } from "@/lib/wallet-context";
 
 export const metadata: Metadata = {
-  title: "Fundraise SaaS",
-  description: "Startup fundraising contracts: SAFEs, convertible notes, e-signature",
+  title: "Zeed",
+  description: "Zeed — startup fundraising contracts: SAFEs, convertible notes, e-signature",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

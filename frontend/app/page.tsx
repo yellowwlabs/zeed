@@ -41,7 +41,7 @@ export default function HomePage() {
           <div className="p-6 border rounded-lg">
             <h3 className="font-semibold mb-2">Selective Disclosure</h3>
             <p className="text-sm text-muted-foreground">
-              Prove key facts (founder control, accreditation) without revealing sensitive data. Powered by Midnight.
+              Prove key facts (founder control, accreditation) without revealing sensitive data. Powered by Zeed.
             </p>
           </div>
         </div>

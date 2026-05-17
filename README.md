@@ -1,4 +1,4 @@
-# Midnight DeFi Angel
+# Zeed
 
 A two-sided startup fundraising platform with privacy-preserving zero-knowledge proofs. Issue SAFEs and convertible notes, manage cap tables, run e-signature workflows, and prove compliance facts on-chain without exposing sensitive data — powered by the Midnight network.
 
@@ -113,7 +113,7 @@ cp .env.example .env    # If available, otherwise edit .env directly
 
 Required environment variables:
 ```env
-DATABASE_URL="postgresql://user:pass@localhost:5432/midnight_defi_angel"
+DATABASE_URL="postgresql://user:pass@localhost:5432/zeed"
 PORT=3001
 AUTH_SECRET="<generate-with-openssl-rand-base64-32>"
 NODE_ENV=development

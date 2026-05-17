@@ -328,7 +328,7 @@ export default function DashboardPage() {
             <span className="text-[#00ff88] uppercase tracking-wider text-[9px]">Live</span>
           </div>
           <div className="w-px h-4 bg-white/10" />
-          <span>Midnight Network</span>
+          <span>Zeed Network</span>
           <span>Terms of Service</span>
           <span>Privacy Policy</span>
           <div className="flex items-center gap-2.5 ml-2">
@@ -345,7 +345,7 @@ export default function DashboardPage() {
           <div className="w-px h-4 bg-white/10" />
           <div className="flex items-center gap-1.5 text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded-full border border-blue-500/20">
             <CircleDot className="w-3 h-3" />
-            <span className="font-bold">Midnight ZK</span>
+            <span className="font-bold">Zeed ZK</span>
           </div>
           <div className="w-px h-4 bg-white/10" />
           <div className="flex items-center gap-2">
