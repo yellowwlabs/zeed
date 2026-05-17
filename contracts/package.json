@@ -3,14 +3,20 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "exports": {
+    "./accreditation": "./src/managed/accreditation/contract/index.js",
+    "./founder_majority": "./src/managed/founder_majority/contract/index.js"
+  },
   "scripts": {
     "compact": "bash scripts/compile.sh",
     "compact:accreditation": "bash scripts/compile.sh accreditation",
     "compact:founder_majority": "bash scripts/compile.sh founder_majority",
+    "copy-artifacts": "bash scripts/copy-artifacts.sh",
+    "build": "bash scripts/compile.sh && bash scripts/copy-artifacts.sh",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "clean": "rm -rf managed/accreditation managed/founder_majority"
+    "clean": "rm -rf src/managed/accreditation src/managed/founder_majority"
   },
   "dependencies": {
     "@midnight-ntwrk/compact-runtime": "^0.16.0",

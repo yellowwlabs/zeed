@@ -3,7 +3,11 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**", "src/managed/**"]
+    },
+    "copy-artifacts": {
+      "dependsOn": ["contracts#build"],
+      "outputs": ["../frontend/public/contracts/**"]
     },
     "dev": {
       "cache": false,

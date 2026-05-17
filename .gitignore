@@ -49,3 +49,5 @@ contracts/**/cache
 .omc
 
 skills
+# Generated ZK artifacts (populated by contracts build step)
+frontend/public/contracts/
