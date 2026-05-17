@@ -143,7 +143,7 @@ importers:
         specifier: ^2.1.1
         version: 2.1.1
       contracts:
-        specifier: file:../contracts
+        specifier: workspace:*
         version: link:../contracts
       decimal.js:
         specifier: ^10.4.3

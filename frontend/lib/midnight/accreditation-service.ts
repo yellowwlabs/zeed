@@ -1,7 +1,7 @@
 "use client";
 
 import { deployContract, findDeployedContract } from "@midnight-ntwrk/midnight-js-contracts";
-import { Contract } from "contracts/src/managed/accreditation/contract/index.js";
+import { Contract } from "contracts/accreditation";
 import { buildContractProviders, connect1AMWallet } from "./providers";
 
 // Witness functions return [updatedPrivateState, value] per compact-runtime protocol.
